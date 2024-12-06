@@ -56,7 +56,7 @@ class UserHandler : HttpHandler {
             {
                 "status": "Bad Request",
                 "code": 400,
-                "message": "Missing 'name' parameter"
+                "errors": "Missing 'name' parameter"
             }
             """.trimIndent()
 
@@ -99,7 +99,7 @@ class UserHandler : HttpHandler {
             {
                 "status": "Bad Request",
                 "code": 400,
-                "message": "Missing 'name' parameter"
+                "errors": "Missing 'name' parameter"
             }
             """.trimIndent()
 
@@ -116,7 +116,7 @@ class UserHandler : HttpHandler {
             {
                 "status": "Bad Request",
                 "code": 400,
-                "message": "Missing 'id' or 'name' parameter"
+                "errors": "Missing 'id' or 'name' parameter"
             }
             """.trimIndent()
 
@@ -161,7 +161,7 @@ class UserHandler : HttpHandler {
             {
                 "status": "Bad Request",
                 "code": 400,
-                "message": "Missing 'id' or 'name' parameter"
+                "errors": "Missing 'id' or 'name' parameter"
             }
             """.trimIndent()
 
@@ -178,7 +178,7 @@ class UserHandler : HttpHandler {
             {
                 "status": "Bad Request",
                 "code": 400,
-                "message": "Missing 'id' parameter"
+                "errors": "Missing 'id' parameter"
             }
             """.trimIndent()
 
@@ -221,7 +221,7 @@ class UserHandler : HttpHandler {
             {
                 "status": "Bad Request",
                 "code": 400,
-                "message": "Missing 'id' parameter"
+                "errors": "Missing 'id' parameter"
             }
             """.trimIndent()
 
