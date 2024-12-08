@@ -32,8 +32,6 @@ fun main() {
 
         if (path == "/users" || path == "/users/" && (query == null || query.isEmpty())) {
             UserHandler().handle(exchange)
-        } else if (path.matches(Regex("^/users/([a-zA-Z0-9_-]+)$"))) {
-            UserHandler().handle(exchange)
         } else {
             NotFoundHandler().handle(exchange)
         }

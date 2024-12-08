@@ -75,7 +75,7 @@ class UserHandler : HttpHandler {
         }
 
         val name = params["name"]
-        if (name != null) {
+        if (!name.isNullOrBlank()) {
             val dbUrl = "jdbc:sqlite:rest_api_kt.db"
             DriverManager.getConnection(dbUrl).use { connection ->
                 val query = "INSERT INTO users(name) VALUES (?)"
@@ -136,7 +136,7 @@ class UserHandler : HttpHandler {
 
         val name = params["name"]
         val id = params["id"]
-        if (name != null && id != null) {
+        if (!name.isNullOrBlank() && !id.isNullOrBlank()) {
             val dbUrl = "jdbc:sqlite:rest_api_kt.db"
             DriverManager.getConnection(dbUrl).use { connection ->
                 val query = "UPDATE users SET name = ? WHERE id = ?"
@@ -197,7 +197,7 @@ class UserHandler : HttpHandler {
         }
 
         val id = params["id"]
-        if (id != null) {
+        if (!id.isNullOrBlank()) {
             val dbUrl = "jdbc:sqlite:rest_api_kt.db"
             DriverManager.getConnection(dbUrl).use { connection ->
                 val query = "DELETE FROM users WHERE id = ?"
