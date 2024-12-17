@@ -10,19 +10,42 @@ import java.sql.DriverManager
 
 class UserHandler : HttpHandler {
     override fun handle(exchange: HttpExchange) {
-        when (exchange.requestMethod) {
-            "GET" -> handleReadUsers(exchange)
-            "POST" -> handleCreateUser(exchange)
-            "PUT" -> handleUpdateUser(exchange)
-            "DELETE" -> handleDeleteUser(exchange)
-            else -> handleMethodNotAllowed(exchange)
+        val path = exchange.requestURI.path
+        val query = exchange.requestURI.query
+        if (path == "/users" || path == "/users/" && (query == null || query.isEmpty())) {
+            when (exchange.requestMethod) {
+                "GET" -> handleReadUsers(exchange)
+                "POST" -> handleCreateUser(exchange)
+                "PUT" -> handleUpdateUser(exchange)
+                "DELETE" -> handleDeleteUser(exchange)
+                else -> {
+                    val jsonResponse = """
+                        {
+                        "status": "Method Not Allowed",
+                        "code": 405
+                        }
+                        """.trimIndent()
+                    exchange.responseHeaders.add("Content-Type", "application/json")
+                    exchange.sendResponseHeaders(405, jsonResponse.toByteArray().size.toLong())
+                    exchange.responseBody.use { os: OutputStream -> os.write(jsonResponse.toByteArray()) }
+                }
+            }
+        } else {
+            val jsonResponse = """
+                {
+                "status": "Not Found",
+                "code": 404
+                }
+                """.trimIndent()
+            exchange.responseHeaders.add("Content-Type", "application/json")
+            exchange.sendResponseHeaders(404, jsonResponse.toByteArray().size.toLong())
+            exchange.responseBody.use { os: OutputStream -> os.write(jsonResponse.toByteArray()) }
         }
     }
 
     private fun handleReadUsers(exchange: HttpExchange) {
         val dbUrl = "jdbc:sqlite:rest_api_kt.db"
         val users = mutableListOf<String>()
-
         DriverManager.getConnection(dbUrl).use { connection ->
             val query = "SELECT id, name FROM users"
             val statement = connection.createStatement()
@@ -35,15 +58,13 @@ class UserHandler : HttpHandler {
                 users.add(user)
             }
         }
-
         val jsonResponse = """
             {
                 "status": "OK",
                 "code": 200,
                 "data": [${users.joinToString(",")}]
             }
-        """.trimIndent()
-
+            """.trimIndent()
         exchange.responseHeaders.add("Content-Type", "application/json")
         exchange.sendResponseHeaders(200, jsonResponse.toByteArray().size.toLong())
         exchange.responseBody.use { os: OutputStream -> os.write(jsonResponse.toByteArray()) }
@@ -53,19 +74,17 @@ class UserHandler : HttpHandler {
         val requestBody = InputStreamReader(exchange.requestBody, StandardCharsets.UTF_8).readText()
         if (requestBody.isBlank()) {
             val jsonResponse = """
-            {
+                {
                 "status": "Bad Request",
                 "code": 400,
                 "errors": "Missing 'name' parameter"
-            }
-            """.trimIndent()
-
+                }
+                """.trimIndent()
             exchange.responseHeaders.add("Content-Type", "application/json")
             exchange.sendResponseHeaders(400, jsonResponse.toByteArray().size.toLong())
             exchange.responseBody.use { os: OutputStream -> os.write(jsonResponse.toByteArray()) }
             return
         }
-
         val params = requestBody.split("&").associate {
             val (key, value) = it.split("=")
             URLDecoder.decode(key, StandardCharsets.UTF_8.name()) to URLDecoder.decode(
@@ -73,7 +92,6 @@ class UserHandler : HttpHandler {
                 StandardCharsets.UTF_8.name()
             )
         }
-
         val name = params["name"]
         if (!name.isNullOrBlank()) {
             val dbUrl = "jdbc:sqlite:rest_api_kt.db"
@@ -83,26 +101,23 @@ class UserHandler : HttpHandler {
                 statement.setString(1, name)
                 statement.executeUpdate()
             }
-
             val jsonResponse = """
-            {
+                {
                 "status": "Created",
                 "code": 201
-            }
-            """.trimIndent()
-
+                }
+                """.trimIndent()
             exchange.responseHeaders.add("Content-Type", "application/json")
             exchange.sendResponseHeaders(201, jsonResponse.toByteArray().size.toLong())
             exchange.responseBody.use { os: OutputStream -> os.write(jsonResponse.toByteArray()) }
         } else {
             val jsonResponse = """
-            {
+                {
                 "status": "Bad Request",
                 "code": 400,
                 "errors": "Missing 'name' parameter"
-            }
-            """.trimIndent()
-
+                }
+                """.trimIndent()
             exchange.responseHeaders.add("Content-Type", "application/json")
             exchange.sendResponseHeaders(400, jsonResponse.toByteArray().size.toLong())
             exchange.responseBody.use { os: OutputStream -> os.write(jsonResponse.toByteArray()) }
@@ -113,19 +128,17 @@ class UserHandler : HttpHandler {
         val requestBody = InputStreamReader(exchange.requestBody, StandardCharsets.UTF_8).readText()
         if (requestBody.isBlank()) {
             val jsonResponse = """
-            {
+                {
                 "status": "Bad Request",
                 "code": 400,
                 "errors": "Missing 'id' or 'name' parameter"
-            }
-            """.trimIndent()
-
+                }
+                """.trimIndent()
             exchange.responseHeaders.add("Content-Type", "application/json")
             exchange.sendResponseHeaders(400, jsonResponse.toByteArray().size.toLong())
             exchange.responseBody.use { os: OutputStream -> os.write(jsonResponse.toByteArray()) }
             return
         }
-
         val params = requestBody.split("&").associate {
             val (key, value) = it.split("=")
             URLDecoder.decode(key, StandardCharsets.UTF_8.name()) to URLDecoder.decode(
@@ -133,7 +146,6 @@ class UserHandler : HttpHandler {
                 StandardCharsets.UTF_8.name()
             )
         }
-
         val name = params["name"]
         val id = params["id"]
         if (!name.isNullOrBlank() && !id.isNullOrBlank()) {
@@ -145,26 +157,23 @@ class UserHandler : HttpHandler {
                 statement.setInt(2, id.toInt())
                 statement.executeUpdate()
             }
-
             val jsonResponse = """
-            {
+                {
                 "status": "OK",
                 "code": 200
-            }
-            """.trimIndent()
-
+                }
+                """.trimIndent()
             exchange.responseHeaders.add("Content-Type", "application/json")
             exchange.sendResponseHeaders(200, jsonResponse.toByteArray().size.toLong())
             exchange.responseBody.use { os: OutputStream -> os.write(jsonResponse.toByteArray()) }
         } else {
             val jsonResponse = """
-            {
+                {
                 "status": "Bad Request",
                 "code": 400,
                 "errors": "Missing 'id' or 'name' parameter"
-            }
-            """.trimIndent()
-
+                }
+                """.trimIndent()
             exchange.responseHeaders.add("Content-Type", "application/json")
             exchange.sendResponseHeaders(400, jsonResponse.toByteArray().size.toLong())
             exchange.responseBody.use { os: OutputStream -> os.write(jsonResponse.toByteArray()) }
@@ -175,19 +184,17 @@ class UserHandler : HttpHandler {
         val requestBody = InputStreamReader(exchange.requestBody, StandardCharsets.UTF_8).readText()
         if (requestBody.isBlank()) {
             val jsonResponse = """
-            {
+                {
                 "status": "Bad Request",
                 "code": 400,
                 "errors": "Missing 'id' parameter"
-            }
-            """.trimIndent()
-
+                }
+                """.trimIndent()
             exchange.responseHeaders.add("Content-Type", "application/json")
             exchange.sendResponseHeaders(400, jsonResponse.toByteArray().size.toLong())
             exchange.responseBody.use { os: OutputStream -> os.write(jsonResponse.toByteArray()) }
             return
         }
-
         val params = requestBody.split("&").associate {
             val (key, value) = it.split("=")
             URLDecoder.decode(key, StandardCharsets.UTF_8.name()) to URLDecoder.decode(
@@ -195,7 +202,6 @@ class UserHandler : HttpHandler {
                 StandardCharsets.UTF_8.name()
             )
         }
-
         val id = params["id"]
         if (!id.isNullOrBlank()) {
             val dbUrl = "jdbc:sqlite:rest_api_kt.db"
@@ -205,43 +211,26 @@ class UserHandler : HttpHandler {
                 statement.setInt(1, id.toInt())
                 statement.executeUpdate()
             }
-
             val jsonResponse = """
-            {
+                {
                 "status": "OK",
                 "code": 200
-            }
-            """.trimIndent()
-
+                }
+                """.trimIndent()
             exchange.responseHeaders.add("Content-Type", "application/json")
             exchange.sendResponseHeaders(200, jsonResponse.toByteArray().size.toLong())
             exchange.responseBody.use { os: OutputStream -> os.write(jsonResponse.toByteArray()) }
         } else {
             val jsonResponse = """
-            {
+                {
                 "status": "Bad Request",
                 "code": 400,
                 "errors": "Missing 'id' parameter"
-            }
-            """.trimIndent()
-
+                }
+                """.trimIndent()
             exchange.responseHeaders.add("Content-Type", "application/json")
             exchange.sendResponseHeaders(400, jsonResponse.toByteArray().size.toLong())
             exchange.responseBody.use { os: OutputStream -> os.write(jsonResponse.toByteArray()) }
         }
-    }
-
-    private fun handleMethodNotAllowed(exchange: HttpExchange) {
-        val jsonResponse = """
-            {
-                "status": "Method Not Allowed",
-                "code": 405
-            }
-        """.trimIndent()
-
-        exchange.responseHeaders.add("Content-Type", "application/json")
-        exchange.sendResponseHeaders(405, jsonResponse.toByteArray().size.toLong())
-
-        exchange.responseBody.use { os: OutputStream -> os.write(jsonResponse.toByteArray()) }
     }
 }
