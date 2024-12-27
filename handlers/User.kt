@@ -10,6 +10,16 @@ import java.sql.DriverManager
 
 class UserHandler : HttpHandler {
     override fun handle(exchange: HttpExchange) {
+        exchange.responseHeaders.add("Access-Control-Allow-Origin", "*")
+        exchange.responseHeaders.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+        exchange.responseHeaders.add("Access-Control-Allow-Headers", "Content-Type")
+        if (exchange.requestMethod == "OPTIONS") {
+            exchange.responseHeaders.add("Content-Type", "application/json")
+            val jsonResponse = ""
+            exchange.sendResponseHeaders(200, jsonResponse.toByteArray().size.toLong())
+            exchange.responseBody.use { os: OutputStream -> os.write(jsonResponse.toByteArray()) }
+            return
+        }
         val path = exchange.requestURI.path
         val query = exchange.requestURI.query
         if (path == "/users" || path == "/users/" && (query == null || query.isEmpty())) {
